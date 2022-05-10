@@ -158,9 +158,9 @@ Traversable LEdge where
 public export
 record Adj e n where
   constructor MkAdj
-  {0 m : Maybe Node}
-  label      : n
-  neighbours : AL m e
+  {0 minNeighbour : Maybe Node}
+  label           : n
+  neighbours      : AL minNeighbour e
 
 public export
 Eq e => Eq n => Eq (Adj e n) where
