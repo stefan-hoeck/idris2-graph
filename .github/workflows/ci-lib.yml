@@ -92,4 +92,6 @@ jobs:
           name: dependencies-for-${{ matrix.idris-version }}
           path: /root/.idris2/
       - name: Build lib
-        run: idris2 --build graph.ipkg
+        run: make lib
+      - name: Test lib
+        run: make test
