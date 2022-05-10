@@ -210,10 +210,10 @@ Bitraversable Adj where
 public export
 record Context e n where
   constructor MkContext
-  {0 m       : Maybe Node}
-  node       : Node
-  label      : n
-  neighbours : AL m e
+  {0 minNeighbour : Maybe Node}
+  node            : Node
+  label           : n
+  neighbours      : AL minNeighbour e
 
 public export
 Eq e => Eq n => Eq (Context e n) where
