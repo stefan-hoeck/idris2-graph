@@ -44,6 +44,13 @@ foldlKV f x (p :: ps) = foldlKV f (f x p) ps
 foldlKV _ x []        = x
 
 public export
+traverseKV : Applicative f => ((Key,a) -> f b) -> AL m a -> f (AL m b)
+traverseKV g []             = pure []
+traverseKV g (p :: ps) =
+  [| (\vb,ps' => (fst p,vb) :: ps') (g p) (traverseKV g ps) |]
+
+
+public export
 Foldable (AL ix) where
   foldr c n [] = n
   foldr c n (x::xs) = c (snd x) (foldr c n xs)
