@@ -44,6 +44,10 @@ jobs:
       matrix:
         lib:
           - prim
+          - elab-util
+          - sop
+          - pretty-show
+          - hedgehog
         idris-version:
           - ${{ needs.read-ver.outputs.idris-ver }}
           - latest
