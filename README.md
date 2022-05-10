@@ -2,7 +2,7 @@
 
 This is a small graph library based on Haskell's [fgl](https://github.com/haskell/fgl)
 library but specialized for simple (undirected, no self-loops), sparse
-graphs, where the node numbers are typically the integers `[1..n]`, where
+graphs, where the vertex numbers are typically the integers `[1..n]`, where
 `n` is the order of the graph.
 
 ## Prerequisites
