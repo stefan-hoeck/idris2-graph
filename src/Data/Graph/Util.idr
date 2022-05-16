@@ -307,8 +307,8 @@ pretty : (e -> String) -> (n -> String) -> Graph e n -> String
 pretty de dn g = case matchAny g of
   Empty                     => "empty graph"
   Split (MkContext n _ _) _ =>
-    let ns     = labNodes g
-        es     = labEdges g
+    let ns     = sortBy (comparing node) $ labNodes g
+        es     = sortBy (comparing edge) $ labEdges g
         maxLen = length $ show n
      in unlines $
           "Nodes:"   :: map (dispNode maxLen) ns ++
