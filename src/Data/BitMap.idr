@@ -226,14 +226,14 @@ data Decomp : Type -> Type where
 export
 decomp : BitMap a -> Decomp a
 decomp (Leaf v) = Match 0 v Empty
-decomp (Branch b0 b1 b2 b3) = case decomp b0 of
-  (Match k v rem) => Match (shl2 k) v (branch rem b1 b2 b3)
-  NoMatch           => case decomp b1 of
-    (Match k v rem) => Match (shl2 k + 1) v (branch b0 rem b2 b3)
-    NoMatch           => case decomp b2 of
-      (Match k v rem) => Match (shl2 k + 2) v (branch b0 b1 rem b3)
-      NoMatch           => case decomp b3 of
-        (Match k v rem) => Match (shl2 k + 3) v (branch b0 b1 b2 rem)
+decomp (Branch b0 b1 b2 b3) = case decomp b3 of
+  (Match k v rem) => Match (shl2 k + 3) v (branch b0 b1 b2 rem)
+  NoMatch           => case decomp b2 of
+    (Match k v rem) => Match (shl2 k + 2) v (branch b0 b1 rem b3)
+    NoMatch           => case decomp b1 of
+      (Match k v rem) => Match (shl2 k + 1) v (branch b0 rem b2 b3)
+      NoMatch           => case decomp b0 of
+        (Match k v rem) => Match (shl2 k) v (branch rem b1 b2 b3)
         NoMatch           => NoMatch
 
 decomp Empty = NoMatch
