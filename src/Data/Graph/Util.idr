@@ -16,21 +16,21 @@ import Data.String
 --------------------------------------------------------------------------------
 
 delNeighbour : Node -> Adj e n -> Adj e n
-delNeighbour n (MkAdj lbl ns) = MkAdj lbl (pairs $ delete n ns)
+delNeighbour n (MkAdj lbl ns) = MkAdj lbl (delete n ns)
 
 delEdgeTo : Node -> GraphRep e n -> (Node,e) -> GraphRep e n
 delEdgeTo n m (n2,_) = update n2 (delNeighbour n) m
 
-delNeighbours : {0 m : _} -> Node -> GraphRep e n -> AL m e -> GraphRep e n
+delNeighbours : Node -> GraphRep e n -> AssocList e -> GraphRep e n
 delNeighbours n g = foldlKV (delEdgeTo n) g
 
 addEdge : Node -> e -> Adj e n -> Adj e n
-addEdge k lbl (MkAdj l ns) = MkAdj l $ pairs $ insert k lbl ns
+addEdge k lbl (MkAdj l ns) = MkAdj l $ insert k lbl ns
 
 addEdgeTo : Node -> GraphRep e n -> (Node,e) -> GraphRep e n
 addEdgeTo k m (n2,lbl) = update n2 (addEdge k lbl) m
 
-addEdgesTo : {0 m : _} -> Node -> GraphRep e n -> AL m e -> GraphRep e n
+addEdgesTo : Node -> GraphRep e n -> AssocList e -> GraphRep e n
 addEdgesTo n g = foldlKV (addEdgeTo n) g
 
 toContext : (Node,Adj e n) -> Context e n
@@ -201,7 +201,7 @@ gmap f = ufold (\c => add (f c)) (MkGraph empty)
 ||| in the graph.
 export
 insNode : Node -> (lbl : n) -> Graph e n -> Graph e n
-insNode v l (MkGraph m) = MkGraph $ insert v (MkAdj l Nil) m
+insNode v l (MkGraph m) = MkGraph $ insert v (MkAdj l $ MkAL []) m
 
 ||| Insert a `LEdge` into the 'Graph'.
 ||| Behavior is undefined if the edge does not
@@ -238,7 +238,7 @@ delNodes vs g = foldl (flip delNode) g vs
 export
 delEdge : Edge -> Graph e n -> Graph e n
 delEdge (MkEdge i j _) g = case match i g of
-  Split (MkContext n l ns) gr => add (MkContext n l (pairs $ delete j ns)) gr
+  Split (MkContext n l ns) gr => add (MkContext n l (delete j ns)) gr
   Empty                       => g
 
 ||| Remove multiple 'Edge's from the 'Graph'.

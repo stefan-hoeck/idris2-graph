@@ -158,13 +158,12 @@ Traversable LEdge where
 public export
 record Adj e n where
   constructor MkAdj
-  {0 minNeighbour : Maybe Node}
   label           : n
-  neighbours      : AL minNeighbour e
+  neighbours      : AssocList e
 
 public export
 Eq e => Eq n => Eq (Adj e n) where
-  MkAdj l1 ns1 == MkAdj l2 ns2 = l1 == l2 && heq ns1 ns2
+  MkAdj l1 ns1 == MkAdj l2 ns2 = l1 == l2 && ns1 == ns2
 
 export
 Show e => Show n => Show (Adj e n) where
@@ -210,15 +209,14 @@ Bitraversable Adj where
 public export
 record Context e n where
   constructor MkContext
-  {0 minNeighbour : Maybe Node}
   node            : Node
   label           : n
-  neighbours      : AL minNeighbour e
+  neighbours      : AssocList e
 
 public export
 Eq e => Eq n => Eq (Context e n) where
   MkContext n1 l1 ns1 == MkContext n2 l2 ns2 =
-    n1 == n2 && l1 == l2 && heq ns1 ns2
+    n1 == n2 && l1 == l2 && ns1 == ns2
 
 export
 Show e => Show n => Show (Context e n) where
