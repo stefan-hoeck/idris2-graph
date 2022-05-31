@@ -57,19 +57,6 @@ lookup k (Branch b0 b1 b2 b3) = case mask k of
 lookup _ _ = Nothing
 
 export
-pairs : BitMap v -> List (Key,v)
-pairs = go 1 0
-  where go : Bits64 -> Key -> BitMap v ->  List (Key,v)
-        go p k Empty = []
-        go p k (Leaf x) = [(k,x)]
-        go p k (Branch b0 b1 b2 b3) =
-          let p2 = shl2 p
-           in go p2 k           b0 ++
-              go p2 (k + p * 1) b1 ++
-              go p2 (k + p * 2) b2 ++
-              go p2 (k + p * 3) b3
-
-export
 foldlKV : (acc -> Key -> v -> acc) -> acc -> BitMap v -> acc
 foldlKV f = go 1 0
   where go : Bits64 -> Key -> acc -> BitMap v ->  acc
@@ -82,14 +69,18 @@ foldlKV f = go 1 0
         go p k x Empty    = x
         go p k x (Leaf y) = f x k y
 
+export
+pairs : BitMap v -> List (Key,v)
+pairs = foldlKV (\ps,k,v => (k,v) :: ps) []
+
 ||| Gets the keys of the map.
 export
 keys : BitMap v -> List Key
-keys = map fst . pairs
+keys = foldlKV (\ks,k,_ => k :: ks) []
 
 export
 values : BitMap v -> List v
-values = map snd . pairs
+values = foldlKV (\vs,_,v => v :: vs) []
 
 --------------------------------------------------------------------------------
 --          Creating IntMaps
