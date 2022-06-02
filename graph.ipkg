@@ -1,6 +1,7 @@
 package graph
 
 authors    = "stefan-hoeck"
+brief      = "Sparse, simple functional graphs in Idris2"
 version    = 0.1.0
 readme     = "README.md"
 license    = "BSD-3 Clause"
