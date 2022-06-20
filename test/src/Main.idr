@@ -1,7 +1,7 @@
-module Test.Main
+module Main
 
 import Hedgehog
-import Test.BitMap
+import BitMap
 
 main : IO ()
 main = test [ BitMap.props

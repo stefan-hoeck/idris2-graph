@@ -13,6 +13,7 @@ depends    = base    >= 0.5.1
            , sop
            , pretty-show
            , hedgehog
+           , graph
 
-main       = Test.Main
+main       = Main
 executable = "runTest"
