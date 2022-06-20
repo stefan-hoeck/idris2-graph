@@ -1,0 +1,9 @@
+[custom.all.graph]
+type   = "local"
+path   = "."
+ipkg   = "graph.ipkg"
+
+[custom.all.graph-test]
+type   = "local"
+path   = "test"
+ipkg   = "test.ipkg"

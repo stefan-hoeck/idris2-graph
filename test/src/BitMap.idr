@@ -1,4 +1,4 @@
-module Test.BitMap
+module BitMap
 
 import Control.Monad.Identity
 import Data.List
@@ -28,8 +28,8 @@ smallPair = [| MkPair smallKey alpha |]
 largePair : Gen (Key, Char)
 largePair = [| MkPair largeKey alpha |]
 
-pairs : Gen $ List (Key, Char)
-pairs = list (linear 0 30) pair
+pairs' : Gen $ List (Key, Char)
+pairs' = list (linear 0 30) pair
 
 smallPairs : Gen $ List (Key, Char)
 smallPairs = list (linear 0 30) smallPair
@@ -38,7 +38,7 @@ largePairs : Gen $ List (Key, Char)
 largePairs = list (linear 0 30) largePair
 
 bitMap : Gen $ BitMap Char
-bitMap = fromList <$> pairs
+bitMap = fromList <$> pairs'
 
 smallIntMap : Gen $ BitMap Char
 smallIntMap = fromList <$> smallPairs
