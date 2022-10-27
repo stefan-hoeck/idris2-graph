@@ -276,6 +276,10 @@ export
 Eq e => Eq n => Eq (Graph e n) where
   MkGraph g1 == MkGraph g2 = g1 == g2
 
+export
+Show e => Show n => Show (Graph e n) where
+  showPrec p (MkGraph g) = showCon p "MkGraph" $ showArg g
+
 public export
 Functor (Graph e) where
   map f g = { graph $= map (map f) } g
