@@ -1,0 +1,13 @@
+package graph-profile
+
+authors    = "stefan-hoeck"
+version    = 0.1.0
+readme     = "README.md"
+license    = "BSD-3 Clause"
+
+sourcedir  = "src"
+depends    = graph
+           , profiler
+
+main       = Main
+executable = "runProfile"
