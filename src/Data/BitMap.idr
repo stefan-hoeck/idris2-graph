@@ -91,6 +91,12 @@ export
 values : BitMap v -> List v
 values = map snd . pairs
 
+export
+size : BitMap v -> Nat
+size Empty                = 0
+size (Leaf x)             = 1
+size (Branch b0 b1 b2 b3) = size b0 + size b1 + size b2 + size b3
+
 --------------------------------------------------------------------------------
 --          Creating IntMaps
 --------------------------------------------------------------------------------
