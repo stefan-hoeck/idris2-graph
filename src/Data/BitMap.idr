@@ -82,6 +82,35 @@ foldlKV f = go 1 0
         go p k x Empty    = x
         go p k x (Leaf y) = f x k y
 
+export
+traverseWithKey : Applicative f => (Key -> v -> f w) -> BitMap v -> f (BitMap w)
+traverseWithKey g = go 1 0
+  where go : Bits64 -> Key -> BitMap v -> f (BitMap w)
+        go p k (Branch b0 b1 b2 b3) =
+          let p2 := shl2 p
+           in [| Branch
+                 (go p2   k b0)
+                 (go p2 (k + p) b1)
+                 (go p2 (k + p * 2) b2)
+                 (go p2 (k + p * 3) b3)
+              |]
+        go p k Empty    = pure Empty
+        go p k (Leaf y) = Leaf <$> g k y
+
+export
+mapWithKey : (Key -> v -> w) -> BitMap v -> BitMap w
+mapWithKey g = go 1 0
+  where go : Bits64 -> Key -> BitMap v -> BitMap w
+        go p k (Branch b0 b1 b2 b3) =
+          let p2 := shl2 p
+           in Branch
+                (go p2   k b0)
+                (go p2 (k + p) b1)
+                (go p2 (k + p * 2) b2)
+                (go p2 (k + p * 3) b3)
+        go p k Empty    = Empty
+        go p k (Leaf y) = Leaf $ g k y
+
 ||| Gets the keys of the map.
 export
 keys : BitMap v -> List Key
