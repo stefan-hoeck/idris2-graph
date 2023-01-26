@@ -104,10 +104,30 @@ map_id = property $ do
   m <- forAll bitMap
   m === map id m
 
+map_withkey_id : Property
+map_withkey_id = property $ do
+  m <- forAll bitMap
+  m === mapWithKey (\_ => id) m
+
+map_withkey_pairs : Property
+map_withkey_pairs = property $ do
+  m <- forAll bitMap
+  pairs m === values (mapWithKey MkPair m)
+
 traverse_id : Property
 traverse_id = property $ do
   m <- forAll bitMap
   Id m === traverse Id m
+
+traverse_withkey_id : Property
+traverse_withkey_id = property $ do
+  m <- forAll bitMap
+  Id m === traverseWithKey (\_ => Id) m
+
+traverse_withkey_pairs : Property
+traverse_withkey_pairs = property $ do
+  m <- forAll bitMap
+  pairs m === values (runIdentity $ traverseWithKey (\k,v => Id (k,v)) m)
 
 --------------------------------------------------------------------------------
 --          props
@@ -127,5 +147,9 @@ props = MkGroup "BitMap Properties"
           , ("decomp_insert", decomp_insert)
           , ("map_id", map_id)
           , ("traverse_id", traverse_id)
+          , ("map_withkey_id", map_withkey_id)
+          , ("map_withkey_pairs", map_withkey_pairs)
+          , ("traverse_withkey_id", traverse_withkey_id)
+          , ("traverse_withkey_pairs", traverse_withkey_pairs)
           ]
 
