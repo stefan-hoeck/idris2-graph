@@ -6,13 +6,7 @@ readme     = "README.md"
 license    = "BSD-3 Clause"
 
 sourcedir  = "src"
-depends    = base    >= 0.5.1
-           , contrib
-           , prim
-           , elab-util
-           , sop
-           , pretty-show
-           , hedgehog
+depends    = hedgehog
            , graph
 
 main       = Main
