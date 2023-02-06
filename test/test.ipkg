@@ -8,6 +8,7 @@ license    = "BSD-3 Clause"
 sourcedir  = "src"
 depends    = hedgehog
            , graph
+           , contrib
 
 main       = Main
 executable = "runTest"
