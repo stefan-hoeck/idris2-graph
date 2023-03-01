@@ -8,19 +8,19 @@ module Data.BitMap
 
 public export
 Key : Type
-Key = Bits64
+Key = Bits32
 
 %inline
-mask : Bits64 -> Bits64
-mask k = prim__and_Bits64 k 3
+mask : Bits32 -> Bits32
+mask k = prim__and_Bits32 k 3
 
 %inline %tcinline
-shr2 : Bits64 -> Bits64
-shr2 k = assert_smaller k $ prim__shr_Bits64 k 2
+shr2 : Bits32 -> Bits32
+shr2 k = assert_smaller k $ prim__shr_Bits32 k 2
 
 %inline
-shl2 : Bits64 -> Bits64
-shl2 k = prim__shl_Bits64 k 2
+shl2 : Bits32 -> Bits32
+shl2 k = prim__shl_Bits32 k 2
 
 --------------------------------------------------------------------------------
 --          BitMap
@@ -59,7 +59,7 @@ lookup _ _ = Nothing
 export
 pairs : BitMap v -> List (Key,v)
 pairs = go 1 0
-  where go : Bits64 -> Key -> BitMap v ->  List (Key,v)
+  where go : Bits32 -> Key -> BitMap v ->  List (Key,v)
         go p k Empty = []
         go p k (Leaf x) = [(k,x)]
         go p k (Branch b0 b1 b2 b3) =
@@ -72,7 +72,7 @@ pairs = go 1 0
 export
 foldlKV : (acc -> Key -> v -> acc) -> acc -> BitMap v -> acc
 foldlKV f = go 1 0
-  where go : Bits64 -> Key -> acc -> BitMap v ->  acc
+  where go : Bits32 -> Key -> acc -> BitMap v ->  acc
         go p k x0 (Branch b0 b1 b2 b3) =
           let p2 = shl2 p
               x1 = go p2 k           x0 b0
@@ -85,7 +85,7 @@ foldlKV f = go 1 0
 export
 traverseWithKey : Applicative f => (Key -> v -> f w) -> BitMap v -> f (BitMap w)
 traverseWithKey g = go 1 0
-  where go : Bits64 -> Key -> BitMap v -> f (BitMap w)
+  where go : Bits32 -> Key -> BitMap v -> f (BitMap w)
         go p k (Branch b0 b1 b2 b3) =
           let p2 := shl2 p
            in [| Branch
@@ -100,7 +100,7 @@ traverseWithKey g = go 1 0
 export
 mapWithKey : (Key -> v -> w) -> BitMap v -> BitMap w
 mapWithKey g = go 1 0
-  where go : Bits64 -> Key -> BitMap v -> BitMap w
+  where go : Bits32 -> Key -> BitMap v -> BitMap w
         go p k (Branch b0 b1 b2 b3) =
           let p2 := shl2 p
            in Branch

@@ -6,7 +6,7 @@ import Data.BitMap
 import Data.Graph.Types
 import Data.List
 import Data.Maybe
-import Data.Prim.Bits64
+import Data.Prim.Bits32
 import Data.String
 
 %default total
