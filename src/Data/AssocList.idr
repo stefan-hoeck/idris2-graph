@@ -139,8 +139,9 @@ Show a => Show (AL m a) where
 public export
 record InsertRes (k : Key) (mk : Maybe Key) (a : Type) where
   constructor IR
-  pairs : AL (Just x) a
-  0 prf : Either (x === k) (Just x === mk)
+  {0 firstKey : Key}
+  pairs : AL (Just firstKey) a
+  0 prf : Either (firstKey === k) (Just firstKey === mk)
 
 0 prependLemma :
      {x,y,k : Key}
@@ -431,8 +432,8 @@ intersectWith_ _ [] y = IS [] %search lteNothing
 public export
 record AssocList a where
   constructor MkAL
-  {0 m : Maybe Key}
-  repr : AL m a
+  {0 firstKey : Maybe Key}
+  repr : AL firstKey a
 
 public export %inline
 Functor AssocList where
