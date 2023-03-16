@@ -275,7 +275,7 @@ labfilter f = labnfilter (f . label)
 export
 pairWithNeighbours : Graph e n -> Graph e (n, List (n,e))
 pairWithNeighbours g =
-  MkGraph $ mapWithKey (\k,ad => (,neighbourLabels g k) <$> ad) (graph g)
+  MkGraph $ mapWithKey (\k => map (,neighbourLabels g k)) (graph g)
 
 --------------------------------------------------------------------------------
 --          Creating Graphs
