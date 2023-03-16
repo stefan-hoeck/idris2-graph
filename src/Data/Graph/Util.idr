@@ -142,6 +142,12 @@ lneighbours (MkGraph g) k = case lookup k g of
   Just (MkAdj _ ns) => pairs ns
   Nothing           => Nil
 
+||| Return the labels of all neighbours of a node paired
+||| with the label of the edges leading to those neighbours.
+export
+neighbourLabels : Graph e n -> Node -> List (n,e)
+neighbourLabels g = mapMaybe (\(k,l) => (,l) <$> lab g k) . lneighbours g
+
 ||| Find the neighbours for a 'Node'.
 export
 neighbours : Graph e n -> Node -> List Node
@@ -267,12 +273,9 @@ labfilter f = labnfilter (f . label)
 ||| Retruns the same graph additionaly containing list of connecting
 |||edges and labels to each node.
 export
-toGraphN : Graph e n -> Graph e (n, List (n,e))
-toGraphN g = MkGraph $ mapWithKey go (graph g)
-  where go1 : (Node, e) -> Maybe (n, e)
-        go1 (x, y) = (map (\h => (h,y))) $ lab g x
-        go : Node -> Adj e n -> Adj e (n, List (n, e))
-        go key adj = map (\y => (y,) (mapMaybe go1 (pairs adj.neighbours ))) adj
+pairWithNeighbours : Graph e n -> Graph e (n, List (n,e))
+pairWithNeighbours g =
+  MkGraph $ mapWithKey (\k,ad => (,neighbourLabels g k) <$> ad) (graph g)
 
 --------------------------------------------------------------------------------
 --          Creating Graphs
