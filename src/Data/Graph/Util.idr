@@ -264,6 +264,15 @@ export
 labfilter : (n -> Bool) -> Graph e n -> Graph e n
 labfilter f = labnfilter (f . label)
 
+||| Retruns the same graph additionaly containing list of connecting
+|||edges and labels to each node.
+toGraphN : Graph e n -> Graph e (n, List (n,e))
+toGraphN g = MkGraph $ mapWithKey go (graph g)
+  where go1 : (Node, e) -> Maybe (n, e)
+        go1 (x, y) = (map (\h => (h,y))) $ lab g x
+        go : Node -> Adj e n -> Adj e (n, List (n, e))
+        go key adj = map (\y => (y,) (mapMaybe go1 (pairs adj.neighbours ))) adj
+
 --------------------------------------------------------------------------------
 --          Creating Graphs
 --------------------------------------------------------------------------------
