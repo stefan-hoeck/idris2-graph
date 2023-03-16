@@ -266,6 +266,7 @@ labfilter f = labnfilter (f . label)
 
 ||| Retruns the same graph additionaly containing list of connecting
 |||edges and labels to each node.
+export
 toGraphN : Graph e n -> Graph e (n, List (n,e))
 toGraphN g = MkGraph $ mapWithKey go (graph g)
   where go1 : (Node, e) -> Maybe (n, e)
