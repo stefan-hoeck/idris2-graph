@@ -1,22 +1,22 @@
 module Data.AssocList
 
 import Data.DPair
-import Data.Prim.Bits64
-import Data.Maybe.NothingMax
+import Data.Prim.Bits32
+import Data.Maybe.Upper
 
 %default total
 
 public export
 0 Key : Type
-Key = Bits64
+Key = Bits32
 
 public export
 0 (<): Maybe Key -> Maybe Key -> Type
-(<) = LT (<)
+(<) = Upper (<)
 
 public export
 0 (<=): Maybe Key -> Maybe Key -> Type
-m1 <= m2 = Either (m1 < m2) (m1 === m2)
+(<=) = ReflexiveClosure (<)
 
 ||| A provably sorted assoc list with `Bits64` as the key type.
 |||
@@ -118,7 +118,7 @@ heq (p :: ps) (q :: qs) = p == q && heq ps qs
 heq [] [] = True
 heq _ _   = False
 
-export %inline
+public export %inline
 Eq a => Eq (AL m a) where
   (==) = heq
 
@@ -139,24 +139,27 @@ Show a => Show (AL m a) where
 public export
 record InsertRes (k : Key) (mk : Maybe Key) (a : Type) where
   constructor IR
-  pairs : AL (Just x) a
-  0 prf : Either (x === k) (Just x === mk)
+  {0 firstKey : Key}
+  pairs : AL (Just firstKey) a
+  0 prf : Either (firstKey === k) (Just firstKey === mk)
 
-0 prependLemma :  {x,y,k : Key}
-               -> {mk : Maybe Key}
-               -> Either (x === k) (Just x === mk)
-               -> (0 ltyk : Just y < Just k)
-               => (0 ltym : Just y < mk)
-               => Just y < Just x
+0 prependLemma :
+     {x,y,k : Key}
+  -> {mk : Maybe Key}
+  -> Either (x === k) (Just x === mk)
+  -> (0 ltyk : Just y < Just k)
+  => (0 ltym : Just y < mk)
+  => Just y < Just x
 prependLemma (Left Refl) = ltyk
 prependLemma (Right z)   = rewrite z in ltym
 
 %inline
-prepend :  (p : (Key,a))
-        -> InsertRes k mk a
-        -> (0 lt : Just (fst p) < Just k)
-        => (0 sm : Just (fst p) < mk)
-        => InsertRes k (Just $ fst p) a
+prepend :
+     (p : (Key,a))
+  -> InsertRes k mk a
+  -> (0 lt : Just (fst p) < Just k)
+  => (0 sm : Just (fst p) < mk)
+  => InsertRes k (Just $ fst p) a
 prepend p (IR ps prf1) =
   let 0 prf = prependLemma prf1
    in IR (p :: ps) (Right Refl)
@@ -167,7 +170,7 @@ prepend p (IR ps prf1) =
 |||
 ||| Note: If the given key `k` is already present in the assoc list,
 ||| its associated value will be replaced with `v`.
-export
+public export
 insert_ : (k : Key) -> (v : a) -> AL ix a -> InsertRes k ix a
 insert_ k v (p :: ps) = case comp k (fst p) of
   LT prf _ _ => IR ((k,v) :: p :: ps) (Left Refl)
@@ -177,7 +180,7 @@ insert_ k v []        = IR [(k,v)] (Left Refl)
 
 ||| Like `insert` but in case `k` is already present in the assoc
 ||| list, the `v` will be cobine with the old value via function `f`.
-export
+public export
 insertWith_ :  (f : a -> a -> a)
             -> (k : Key)
             -> (v : a)
@@ -211,8 +214,8 @@ prependDR :  (p : (Key,a))
           -> (0 lt : Just (fst p) < m)
           => DeleteRes (Just $ fst p) a
 prependDR p (DR ps lte) =
-  let 0 lt = trans_LT_LTE lt lte
-   in DR (p :: ps) (Right Refl)
+  let 0 lt = strictLeft lt lte
+   in DR (p :: ps) Refl
 
 ||| Tries to remove the entry with the given key from the
 ||| assoc list. The key index of the result will be equal to
@@ -232,7 +235,7 @@ mapMaybe_ : (a -> Maybe b) -> AL m a -> DeleteRes m b
 mapMaybe_ f (p :: ps) = case f (snd p) of
   Just v  => prependDR (fst p, v) $ mapMaybe_ f ps
   Nothing => let DR qs prf = mapMaybe_ f ps
-              in DR qs (Left $ trans_LT_LTE %search prf)
+              in DR qs (transitive %search prf)
 mapMaybe_ f []        = DR [] %search
 
 ||| Applies the given function to all key / value pairs, keeping only the
@@ -242,7 +245,7 @@ mapMaybeK_ : (Key -> a -> Maybe b) -> AL m a -> DeleteRes m b
 mapMaybeK_ f ((n,va) :: ps) = case f n va of
   Just vb => prependDR (n,vb) $ mapMaybeK_ f ps
   Nothing => let DR qs prf = mapMaybeK_ f ps
-              in DR qs (Left $ trans_LT_LTE %search prf)
+              in DR qs (transitive %search prf)
 mapMaybeK_ f []        = DR [] %search
 
 --------------------------------------------------------------------------------
@@ -282,34 +285,40 @@ record UnionRes (m1,m2 : Maybe Key) (a : Type) where
   pairs : AL mx a
   0 prf : Either (m1 === mx) (m2 === mx)
 
-export %inline
-prepLT : (p : (Key,a))
-       -> UnionRes m1 (Just k2) a
-       -> (0 prf1 : Just (fst p) < m1)
-       => (0 prf2 : Just (fst p) < Just k2)
-       => UnionRes (Just $ fst p) (Just k2) a
+0 trans_LT_EQ : {0 lt : _} -> Transitive a lt => lt x y -> y === z -> lt x z
+trans_LT_EQ w Refl = w
+
+public export %inline
+prepLT :
+     (p : (Key,a))
+  -> UnionRes m1 (Just k2) a
+  -> (0 prf1 : Just (fst p) < m1)
+  => (0 prf2 : Just (fst p) < Just k2)
+  => UnionRes (Just $ fst p) (Just k2) a
 prepLT p (UR ps prf) =
   let 0 lt = either (trans_LT_EQ prf1) (trans_LT_EQ prf2) prf
    in UR (p :: ps) (Left Refl)
 
-export %inline
-prepGT : (p : (Key,a))
-       -> UnionRes (Just k1) m2 a
-       -> (0 prf1 : Just (fst p) < m2)
-       => (0 prf2 : Just (fst p) < Just k1)
-       => UnionRes (Just k1) (Just $ fst p) a
+public export %inline
+prepGT :
+     (p : (Key,a))
+   -> UnionRes (Just k1) m2 a
+   -> (0 prf1 : Just (fst p) < m2)
+   => (0 prf2 : Just (fst p) < Just k1)
+   => UnionRes (Just k1) (Just $ fst p) a
 prepGT p (UR ps prf) =
   let 0 lt = either (trans_LT_EQ prf2) (trans_LT_EQ prf1) prf
    in UR (p :: ps) (Right Refl)
 
-export %inline
-prepEQ :  {0 x : Maybe Key}
-       -> (p : (Key,a))
-       -> (0 eq  : fst p === k)
-       -> UnionRes m1 m2 a
-       -> (0 prf1 : Just (fst p) < m1)
-       => (0 prf2 : Just k < m2)
-       => UnionRes (Just $ fst p) x a
+public export %inline
+prepEQ :
+     {0 x : Maybe Key}
+  -> (p : (Key,a))
+  -> (0 eq  : fst p === k)
+  -> UnionRes m1 m2 a
+  -> (0 prf1 : Just (fst p) < m1)
+  => (0 prf2 : Just k < m2)
+  => UnionRes (Just $ fst p) x a
 prepEQ p eq (UR ps prf) =
   let 0 fstp_lt_m2 = rewrite eq in prf2
       0 lt = either (trans_LT_EQ prf1) (trans_LT_EQ fstp_lt_m2) prf
@@ -320,7 +329,7 @@ prepEQ p eq (UR ps prf) =
 ||| In case of identical keys, the value of the second list
 ||| is dropped. Use `unionWith` for better control over handling
 ||| duplicate entries.
-export
+public export
 union_ : AL m1 a -> AL m2 a -> UnionRes m1 m2 a
 union_ (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
   LT prf _   _   => prepLT p $ union_ ps (q :: qs)
@@ -332,12 +341,13 @@ union_ [] y = UR y (Right Refl)
 ||| Like `union` but in case of identical keys appearing in
 ||| both lists, the associated values are combined using
 ||| function `f`. Otherwise, values are converted with `g`.
-export
-unionMap_ :  (f : a -> a -> b)
-         -> (g : a -> b)
-         -> AL m1 a
-         -> AL m2 a
-         -> UnionRes m1 m2 b
+public export
+unionMap_ :
+     (f : a -> a -> b)
+  -> (g : a -> b)
+  -> AL m1 a
+  -> AL m2 a
+  -> UnionRes m1 m2 b
 unionMap_ f g (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
   LT prf _   _   => prepLT (fst p, g $ snd p) $ unionMap_ f g ps (q :: qs)
   EQ _   prf _   => prepEQ (fst p, f (snd p) (snd q)) prf $ unionMap_ f g ps qs
@@ -348,7 +358,7 @@ unionMap_ _ g [] y = UR (map g y) (Right Refl)
 ||| Like `union` but in case of identical keys appearing in
 ||| both lists, the associated values are combined using
 ||| function `f`.
-export
+public export
 unionWith_ : (a -> a -> a) -> AL m1 a -> AL m2 a -> UnionRes m1 m2 a
 unionWith_ f = unionMap_ f id
 
@@ -368,49 +378,50 @@ record IntersectRes (m1,m2 : Maybe Key) (a : Type) where
   0 prf2 : m2 <= mx
 
 0 lteNothing : {m : Maybe Key} -> m <= Nothing
-lteNothing {m = Nothing} = Right Refl
-lteNothing {m = Just _}  = Left %search
+lteNothing {m = Nothing} = Refl
+lteNothing {m = Just _}  = Rel %search
 
-%inline
-prependIS :  {0 m1,m2 : Maybe Key}
-          -> (p : (Key, a))
-          -> (0 prf : fst p === k)
-          -> IntersectRes m1 m2 a
-          -> (0 lt  : Just (fst p) < m1)
-          => IntersectRes (Just $ fst p) (Just k) a
+public export %inline
+prependIS :
+     {0 m1,m2 : Maybe Key}
+  -> (p : (Key, a))
+  -> (0 prf : fst p === k)
+  -> IntersectRes m1 m2 a
+  -> (0 lt  : Just (fst p) < m1)
+  => IntersectRes (Just $ fst p) (Just k) a
 prependIS p prf (IS ps prf1 prf2) =
-  let 0 ltp = trans_LT_LTE lt prf1
-   in IS (p :: ps) (Right Refl) (Right $ cong Just (sym prf))
+  let 0 ltp = strictLeft lt prf1
+   in IS (p :: ps) Refl (fromEq $ cong Just (sym prf))
 
 ||| Computes the intersection of two assoc lists, keeping
 ||| only entries appearing in both lists. Only the values of
 ||| the first list are being kept.
-export
+public export
 intersect_ : AL m1 a -> AL m2 a -> IntersectRes m1 m2 a
 intersect_ (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
   LT _ _ _   =>
     let IS res p1 p2 = intersect_ ps (q :: qs)
-     in IS res (trans %search p1) p2
+     in IS res (transitive %search p1) p2
   EQ _ y _ => prependIS p y $ intersect_ ps qs
   GT _ _ _ =>
     let IS res p1 p2 = intersect_ (p :: ps) qs
-     in IS res p1 (trans %search p2)
+     in IS res p1 (transitive %search p2)
 intersect_ y [] = IS [] lteNothing %search
 intersect_ [] y = IS [] %search lteNothing
 
 ||| Computes the intersection of two assoc lists, keeping
 ||| only entries appearing in both lists. Values of the two
 ||| lists are combine using function `f`.
-export
+public export
 intersectWith_ : (a -> a -> b) -> AL m1 a -> AL m2 a -> IntersectRes m1 m2 b
 intersectWith_ f (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
   LT _ _ _ =>
     let IS res p1 p2 = intersectWith_ f ps (q :: qs)
-     in IS res (trans %search p1) p2
+     in IS res (transitive %search p1) p2
   EQ _ y _ => prependIS (fst p, f (snd p) (snd q)) y $ intersectWith_ f ps qs
   GT _ _ _ =>
     let IS res p1 p2 = intersectWith_ f (p :: ps) qs
-     in IS res p1 (trans %search p2)
+     in IS res p1 (transitive %search p2)
 intersectWith_ _ y [] = IS [] lteNothing %search
 intersectWith_ _ [] y = IS [] %search lteNothing
 
@@ -421,8 +432,8 @@ intersectWith_ _ [] y = IS [] %search lteNothing
 public export
 record AssocList a where
   constructor MkAL
-  {0 m : Maybe Key}
-  repr : AL m a
+  {0 firstKey : Maybe Key}
+  repr : AL firstKey a
 
 public export %inline
 Functor AssocList where
@@ -479,7 +490,7 @@ public export %inline
 length : AssocList a -> Nat
 length (MkAL r) = length_ r
 
-export %inline
+public export %inline
 Eq a => Eq (AssocList a) where
   MkAL r1 == MkAL r2 = heq r1 r2
 
@@ -493,13 +504,13 @@ Show a => Show (AssocList a) where
 |||
 ||| Note: If the given key `k` is already present in the assoc list,
 ||| its associated value will be replaced with `v`.
-export %inline
+public export %inline
 insert : (k : Key) -> (v : a) -> AssocList a -> AssocList a
 insert k v (MkAL r) = MkAL $ pairs $ insert_ k v r
 
 ||| Like `insert` but in case `k` is already present in the assoc
 ||| list, the `v` will be cobine with the old value via function `f`.
-export %inline
+public export %inline
 insertWith :  (f : a -> a -> a)
            -> (k : Key)
            -> (v : a)
@@ -507,37 +518,37 @@ insertWith :  (f : a -> a -> a)
            -> AssocList a
 insertWith f k v (MkAL r) = MkAL $ pairs $ insertWith_ f k v r
 
-export
+public export
 fromList : List (Key,a) -> AssocList a
 fromList = foldl (\al,(k,v) => insert k v al) (MkAL [])
 
 ||| Tries to remove the entry with the given key from the
 ||| assoc list. The key index of the result will be equal to
 ||| or greater than `m`.
-export %inline
+public export %inline
 delete : (k : Key) -> AssocList a -> AssocList a
 delete k (MkAL r) = MkAL $ pairs $ delete_ k r
 
 ||| Applies the given function to all values, keeping only the
 ||| `Just` results.
-export %inline
+public export %inline
 mapMaybe : (a -> Maybe b) -> AssocList a -> AssocList b
 mapMaybe f (MkAL r) = MkAL $ pairs $ mapMaybe_ f r
 
 ||| Applies the given function to all key / value pairs, keeping only the
 ||| `Just` results.
-export %inline
+public export %inline
 mapMaybeK : (Key -> a -> Maybe b) -> AssocList a -> AssocList b
 mapMaybeK f (MkAL r) = MkAL $ pairs $ mapMaybeK_ f r
 
 ||| Updates the value at the given position by applying the given function.
-export %inline
+public export %inline
 update : (k : Key) -> (a -> a) -> AssocList a -> AssocList a
 update k f (MkAL r) = MkAL $ update_ k f r
 
 ||| Updates the value at the given position by applying the given effectful
 ||| computation.
-export %inline
+public export %inline
 updateA : Applicative f => Key -> (a -> f a) -> AssocList a -> f (AssocList a)
 updateA k g (MkAL r) = MkAL <$> updateA_ k g r
 
@@ -546,38 +557,39 @@ updateA k g (MkAL r) = MkAL <$> updateA_ k g r
 ||| In case of identical keys, the value of the second list
 ||| is dropped. Use `unionWith` for better control over handling
 ||| duplicate entries.
-export %inline
+public export %inline
 union : AssocList a -> AssocList a -> AssocList a
 union (MkAL r1) (MkAL r2) = MkAL $ pairs $ union_ r1 r2
 
 ||| Like `union` but in case of identical keys appearing in
 ||| both lists, the associated values are combined using
 ||| function `f`. Otherwise, values are converted with `g`.
-export %inline
-unionMap :  (f : a -> a -> b)
-         -> (g : a -> b)
-         -> AssocList a
-         -> AssocList a
-         -> AssocList b
+public export %inline
+unionMap :
+     (f : a -> a -> b)
+  -> (g : a -> b)
+  -> AssocList a
+  -> AssocList a
+  -> AssocList b
 unionMap f g (MkAL r1) (MkAL r2) = MkAL $ pairs $ unionMap_ f g r1 r2
 
 ||| Like `union` but in case of identical keys appearing in
 ||| both lists, the associated values are combined using
 ||| function `f`.
-export %inline
+public export %inline
 unionWith : (a -> a -> a) -> AssocList a -> AssocList a -> AssocList a
 unionWith f = unionMap f id
 
 ||| Computes the intersection of two assoc lists, keeping
 ||| only entries appearing in both lists. Only the values of
 ||| the first list are being kept.
-export %inline
+public export %inline
 intersect : AssocList a -> AssocList a -> AssocList a
 intersect (MkAL r1) (MkAL r2) = MkAL $ pairs $ intersect_ r1 r2
 
 ||| Computes the intersection of two assoc lists, keeping
 ||| only entries appearing in both lists. Values of the two
 ||| lists are combine using function `f`.
-export
+public export
 intersectWith : (a -> a -> b) -> AssocList a -> AssocList a -> AssocList b
 intersectWith f (MkAL r1) (MkAL r2) = MkAL $ pairs $ intersectWith_ f r1 r2

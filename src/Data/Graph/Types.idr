@@ -7,7 +7,7 @@ module Data.Graph.Types
 
 import Data.AssocList
 import Data.BitMap
-import Data.Prim.Bits64
+import Data.Prim.Bits32
 
 %default total
 
@@ -20,7 +20,7 @@ infixl 4 :>, <>
 ||| A node in an undirected graph.
 public export
 Node : Type
-Node = Bits64
+Node = Bits32
 
 ||| An edge in a simple, undirected graph.
 ||| Since edges go in both directions and loops are not allowed,
