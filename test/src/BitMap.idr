@@ -11,13 +11,13 @@ import Hedgehog
 --------------------------------------------------------------------------------
 
 anyKey : Gen Key
-anyKey = bits64 (linear 0 0xffff_ffff_ffff_ffff)
+anyKey = anyBits32
 
 smallKey : Gen Key
-smallKey = bits64 (linear 0 0xf)
+smallKey = bits32 (linear 0 0xf)
 
 largeKey : Gen Key
-largeKey = bits64 (linear 0xffff_ffff 0xffff_ffff_ffff)
+largeKey = bits32 (linear 0xffff_ffff 0xffff_ffff_ffff)
 
 pair : Gen (Key, Char)
 pair = [| MkPair anyKey alpha |]
