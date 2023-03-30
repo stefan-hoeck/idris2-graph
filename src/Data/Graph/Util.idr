@@ -271,11 +271,18 @@ labfilter : (n -> Bool) -> Graph e n -> Graph e n
 labfilter f = labnfilter (f . label)
 
 ||| Retruns the same graph additionaly containing list of connecting
-|||edges and labels to each node.
+||| edges and labels to each node.
 export
 pairWithNeighbours : Graph e n -> Graph e (n, List (n,e))
 pairWithNeighbours g =
   MkGraph $ mapWithKey (\k => map (,neighbourLabels g k)) (graph g)
+
+||| Returns the same graph additionaly containing list of connecting
+||| labels to each node.
+export
+pairWithNeighbours' : Graph e n -> Graph e (n, List n)
+pairWithNeighbours' g =
+  MkGraph $ mapWithKey (\k => map (,map fst $ neighbourLabels g k)) (graph g)
 
 --------------------------------------------------------------------------------
 --          Creating Graphs
