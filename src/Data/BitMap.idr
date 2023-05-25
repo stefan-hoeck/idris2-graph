@@ -141,6 +141,20 @@ branch : (t0,t1,t2,t3 : BitMap a) -> BitMap a
 branch Empty Empty Empty Empty = Empty
 branch t0    t1    t2    t3    = Branch t0 t1 t2 t3
 
+export
+mapMaybe : (a -> Maybe b) -> BitMap a -> BitMap b
+mapMaybe f Empty    = Empty
+mapMaybe f (Leaf v) = maybe Empty Leaf (f v)
+mapMaybe f (Branch b0 b1 b2 b3) =
+  branch (mapMaybe f b0) (mapMaybe f b1) (mapMaybe f b2) (mapMaybe f b3)
+
+export
+filter : (a -> Bool) -> BitMap a -> BitMap a
+filter f Empty    = Empty
+filter f (Leaf v) = if f v then Leaf v else Empty
+filter f (Branch b0 b1 b2 b3) =
+  branch (filter f b0) (filter f b1) (filter f b2) (filter f b3)
+
 --------------------------------------------------------------------------------
 --          Insert and Update
 --------------------------------------------------------------------------------
