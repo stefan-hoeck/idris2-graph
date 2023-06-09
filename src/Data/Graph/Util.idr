@@ -173,6 +173,15 @@ export
 hasLEdge : Eq e => Graph e n -> LEdge e -> Bool
 hasLEdge g (MkLEdge (MkEdge k j _) le) = maybe False (le ==) $ elab g k j
 
+||| Find the content of a node
+export
+adj : Graph e n -> Node -> Maybe $ Adj e n
+adj (MkGraph g) k = lookup k $ pairs g
+
+||| Find the content of a node and the list of neighbours
+lAdj : Graph e n -> Node -> Maybe $ Adj (n, e) n
+lAdj g k = ?foo
+
 --------------------------------------------------------------------------------
 --          Modifying Graphs
 --------------------------------------------------------------------------------
