@@ -315,11 +315,13 @@ Foldable (Graph e) where
   null g     = isEmpty $ graph g
 
 namespace GraphFunctor
-  [Edge] Functor (`Graph` n) where
+  export
+  [OnEdge] Functor (`Graph` n) where
     map f g = { graph $= map {neighbours $= map f} } g
 
 namespace GraphFoldable
-  [Edge] Foldable (`Graph` n) where
+  export
+  [OnEdge] Foldable (`Graph` n) where
     foldr f a = foldr (\v,x => foldr f x v.neighbours) a . graph
     foldl f a = foldl (\x,v => foldl f x v.neighbours) a . graph
     foldMap f = foldMap (\v => foldMap f v.neighbours) . graph
