@@ -186,6 +186,19 @@ public export %inline
 Traversable (Adj e) where
   traverse f (MkAdj n l) = (`MkAdj` l) <$> f n
 
+namespace AdjFunctor
+  [AdjEdge] Functor (`Adj` n) where
+    map f = {neighbours $= map f}
+
+namespace AdjFoldable
+  [AdjEdge] Foldable (`Adj` n) where
+    foldl f a  = foldl f a . neighbours
+    foldr f a  = foldr f a . neighbours
+    foldMap  f = foldMap f . neighbours
+    null       = null . neighbours
+    toList     = toList . neighbours
+    foldlM f a = foldlM f a . neighbours
+
 public export
 Bifunctor Adj where
   bimap  f g (MkAdj l es) = MkAdj (g l) (map f es)
@@ -235,6 +248,19 @@ Foldable (Context e) where
   null _       = False
   toList n     = [n.label]
   foldlM f a n = f a n.label
+
+namespace ContextFunctor
+  [CtxtEdge] Functor (`Context` n) where
+    map f = {neighbours $= map f}
+
+namespace ContextFoldable
+  [CtxtEdge] Foldable (`Context` n) where
+    foldl f a  = foldl f a . neighbours
+    foldr f a  = foldr f a . neighbours
+    foldMap  f = foldMap f . neighbours
+    null       = null . neighbours
+    toList     = toList . neighbours
+    foldlM f a = foldlM f a . neighbours
 
 public export %inline
 Traversable (Context e) where
@@ -287,6 +313,18 @@ Foldable (Graph e) where
   foldMap  f = foldMap (f . label) . graph
   toList     = map label . toList . graph
   null g     = isEmpty $ graph g
+
+namespace GraphFunctor
+  [Edge] Functor (`Graph` n) where
+    map f g = { graph $= map {neighbours $= map f} } g
+
+namespace GraphFoldable
+  [Edge] Foldable (`Graph` n) where
+    foldr f a = foldr (\v,x => foldr f x v.neighbours) a . graph
+    foldl f a = foldl (\x,v => foldl f x v.neighbours) a . graph
+    foldMap f = foldMap (\v => foldMap f v.neighbours) . graph
+    toList g  = toList g.graph >>= toList . neighbours
+    null   g  = all (null . neighbours) g.graph
 
 public export %inline
 Traversable (Graph e) where
