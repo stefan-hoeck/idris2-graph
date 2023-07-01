@@ -305,12 +305,18 @@ Foldable BitMap where
   foldr _ acc Empty = acc
   foldr f acc (Leaf v) = f v acc
   foldr f acc (Branch b0 b1 b2 b3) =
-    foldr f (foldr f (foldr f (foldr f acc b3) b2 ) b1) b0
+    let acc2 := foldr f acc  b3
+        acc1 := foldr f acc2 b2
+        acc0 := foldr f acc1 b1
+     in foldr f acc0 b0
 
   foldl _ acc Empty = acc
   foldl f acc (Leaf v) = f acc v
   foldl f acc (Branch b0 b1 b2 b3) =
-    foldl f (foldl f (foldl f (foldl f acc b0) b1 ) b2) b3
+    let acc1 := foldl f acc  b0
+        acc2 := foldl f acc1 b1
+        acc3 := foldl f acc2 b2
+     in foldl f acc3 b3
 
   foldMap _ Empty = neutral
   foldMap f (Leaf v) = f v
