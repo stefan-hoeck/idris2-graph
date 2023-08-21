@@ -135,21 +135,22 @@ traverse_withkey_pairs = property $ do
 
 export
 props : Group
-props = MkGroup "BitMap Properties"
-          [ ("empty_lookup", empty_lookup)
-          , ("singleton_lookup", singleton_lookup)
-          , ("insert_lookup", insert_lookup)
-          , ("insertWith_lookup", insertWith_lookup)
-          , ("update_lookup", update_lookup)
-          , ("delete_lookup", delete_lookup)
-          , ("decomp_lookup_old", decomp_lookup_old)
-          , ("decomp_lookup_new", decomp_lookup_new)
-          , ("decomp_insert", decomp_insert)
-          , ("map_id", map_id)
-          , ("traverse_id", traverse_id)
-          , ("map_withkey_id", map_withkey_id)
-          , ("map_withkey_pairs", map_withkey_pairs)
-          , ("traverse_withkey_id", traverse_withkey_id)
-          , ("traverse_withkey_pairs", traverse_withkey_pairs)
-          ]
-
+props =
+  MkGroup
+    "BitMap Properties"
+    [ ("empty_lookup", empty_lookup)
+    , ("singleton_lookup", singleton_lookup)
+    , ("insert_lookup", insert_lookup)
+    , ("insertWith_lookup", insertWith_lookup)
+    , ("update_lookup", update_lookup)
+    , ("delete_lookup", delete_lookup)
+    , ("decomp_lookup_old", decomp_lookup_old)
+    , ("decomp_lookup_new", decomp_lookup_new)
+    , ("decomp_insert", decomp_insert)
+    , ("map_id", map_id)
+    , ("traverse_id", traverse_id)
+    , ("map_withkey_id", map_withkey_id)
+    , ("map_withkey_pairs", map_withkey_pairs)
+    , ("traverse_withkey_id", traverse_withkey_id)
+    , ("traverse_withkey_pairs", traverse_withkey_pairs)
+    ]

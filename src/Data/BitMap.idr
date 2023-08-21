@@ -59,57 +59,65 @@ lookup _ _ = Nothing
 export
 pairs : BitMap v -> List (Key,v)
 pairs = go 1 0
-  where go : Bits32 -> Key -> BitMap v ->  List (Key,v)
-        go p k Empty = []
-        go p k (Leaf x) = [(k,x)]
-        go p k (Branch b0 b1 b2 b3) =
-          let p2 = shl2 p
-           in go p2 k           b0 ++
-              go p2 (k + p * 1) b1 ++
-              go p2 (k + p * 2) b2 ++
-              go p2 (k + p * 3) b3
+
+  where
+    go : Bits32 -> Key -> BitMap v ->  List (Key,v)
+    go p k Empty = []
+    go p k (Leaf x) = [(k,x)]
+    go p k (Branch b0 b1 b2 b3) =
+      let p2 = shl2 p
+       in go p2 k           b0 ++
+          go p2 (k + p * 1) b1 ++
+          go p2 (k + p * 2) b2 ++
+          go p2 (k + p * 3) b3
 
 export
 foldlKV : (acc -> Key -> v -> acc) -> acc -> BitMap v -> acc
 foldlKV f = go 1 0
-  where go : Bits32 -> Key -> acc -> BitMap v ->  acc
-        go p k x0 (Branch b0 b1 b2 b3) =
-          let p2 = shl2 p
-              x1 = go p2 k           x0 b0
-              x2 = go p2 (k + p * 1) x1 b1
-              x3 = go p2 (k + p * 2) x2 b2
-           in go p2 (k + p * 3) x3 b3
-        go p k x Empty    = x
-        go p k x (Leaf y) = f x k y
+
+  where
+    go : Bits32 -> Key -> acc -> BitMap v ->  acc
+    go p k x0 (Branch b0 b1 b2 b3) =
+      let p2 := shl2 p
+          x1 := go p2 k           x0 b0
+          x2 := go p2 (k + p * 1) x1 b1
+          x3 := go p2 (k + p * 2) x2 b2
+       in go p2 (k + p * 3) x3 b3
+    go p k x Empty    = x
+    go p k x (Leaf y) = f x k y
 
 export
 traverseWithKey : Applicative f => (Key -> v -> f w) -> BitMap v -> f (BitMap w)
 traverseWithKey g = go 1 0
-  where go : Bits32 -> Key -> BitMap v -> f (BitMap w)
-        go p k (Branch b0 b1 b2 b3) =
-          let p2 := shl2 p
-           in [| Branch
-                 (go p2   k b0)
-                 (go p2 (k + p) b1)
-                 (go p2 (k + p * 2) b2)
-                 (go p2 (k + p * 3) b3)
-              |]
-        go p k Empty    = pure Empty
-        go p k (Leaf y) = Leaf <$> g k y
+
+  where
+    go : Bits32 -> Key -> BitMap v -> f (BitMap w)
+    go p k (Branch b0 b1 b2 b3) =
+      let p2 := shl2 p
+       in [| Branch
+             (go p2   k b0)
+             (go p2 (k + p) b1)
+             (go p2 (k + p * 2) b2)
+             (go p2 (k + p * 3) b3)
+          |]
+    go p k Empty    = pure Empty
+    go p k (Leaf y) = Leaf <$> g k y
 
 export
 mapWithKey : (Key -> v -> w) -> BitMap v -> BitMap w
 mapWithKey g = go 1 0
-  where go : Bits32 -> Key -> BitMap v -> BitMap w
-        go p k (Branch b0 b1 b2 b3) =
-          let p2 := shl2 p
-           in Branch
-                (go p2   k b0)
-                (go p2 (k + p) b1)
-                (go p2 (k + p * 2) b2)
-                (go p2 (k + p * 3) b3)
-        go p k Empty    = Empty
-        go p k (Leaf y) = Leaf $ g k y
+
+  where
+    go : Bits32 -> Key -> BitMap v -> BitMap w
+    go p k (Branch b0 b1 b2 b3) =
+      let p2 := shl2 p
+       in Branch
+            (go p2   k b0)
+            (go p2 (k + p) b1)
+            (go p2 (k + p * 2) b2)
+            (go p2 (k + p * 3) b3)
+    go p k Empty    = Empty
+    go p k (Leaf y) = Leaf $ g k y
 
 ||| Gets the keys of the map.
 export
@@ -338,7 +346,9 @@ Traversable BitMap where
   traverse f Empty = pure Empty
   traverse f (Leaf v) = Leaf <$> f v
   traverse f (Branch b0 b1 b2 b3) =
-    [| Branch (traverse f b0)
-              (traverse f b1)
-              (traverse f b2)
-              (traverse f b3) |]
+    [| Branch
+         (traverse f b0)
+         (traverse f b1)
+         (traverse f b2)
+         (traverse f b3)
+    |]

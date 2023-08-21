@@ -43,11 +43,13 @@ toLNode (k,MkAdj l _) = MkLNode k l
 -- context to avoid returning every edge twice in `labEdges`.
 ctxtEdges : Context e n -> List (LEdge e)
 ctxtEdges (MkContext k _ ns) = go Nil (pairs ns)
-  where go : List (LEdge e) -> List (Node,e) -> List (LEdge e)
-        go es Nil            = reverse es
-        go es ((j,lbl) :: t) = case comp j k of
-          GT _ _ p => go (MkLEdge (MkEdge k j p) lbl :: es) t
-          _        => go es t
+
+  where
+    go : List (LEdge e) -> List (Node,e) -> List (LEdge e)
+    go es Nil            = reverse es
+    go es ((j,lbl) :: t) = case comp j k of
+      GT _ _ p => go (MkLEdge (MkEdge k j p) lbl :: es) t
+      _        => go es t
 
 --------------------------------------------------------------------------------
 --          Decomposing Graphs
@@ -63,8 +65,8 @@ match : (node : Node) -> Graph e n -> Decomp e n
 match node (MkGraph g) = case lookup node g of
   Nothing              => Empty
   Just (MkAdj lbl ns)  =>
-    let g1   = MkGraph $ delNeighbours node (delete node g) ns
-        ctxt = MkContext node lbl ns
+    let g1   := MkGraph $ delNeighbours node (delete node g) ns
+        ctxt := MkContext node lbl ns
      in Split ctxt g1
 
 ||| Decompose a graph into the `Context` for the largest `Node`
@@ -187,7 +189,7 @@ hasLEdge g (MkLEdge (MkEdge k j _) le) = maybe False (le ==) $ elab g k j
 export
 add : Context e n -> Graph e n -> Graph e n
 add (MkContext k lbl ns) (MkGraph m) =
-  let m1 = insert k (MkAdj lbl ns) m
+  let m1 := insert k (MkAdj lbl ns) m
    in MkGraph $ addEdgesTo k m1 ns
 
 ||| Fold a function over the graph by recursively calling 'match'.
@@ -215,7 +217,7 @@ insNode v l (MkGraph m) = MkGraph $ insert v (MkAdj l $ MkAL []) m
 export
 insEdge : LEdge e -> Graph e n -> Graph e n
 insEdge (MkLEdge (MkEdge n1 n2 _) lbl) (MkGraph g) =
-  let g1 = update n1 (addEdge n2 lbl) g
+  let g1 := update n1 (addEdge n2 lbl) g
    in MkGraph $ update n2 (addEdge n1 lbl) g1
 
 ||| Insert multiple `LNode`s into the `Graph`.
@@ -327,17 +329,18 @@ pretty : (e -> String) -> (n -> String) -> Graph e n -> String
 pretty de dn g = case matchAny g of
   Empty                     => "empty graph"
   Split (MkContext n _ _) _ =>
-    let ns     = sortBy (comparing node) $ labNodes g
-        es     = sortBy (comparing edge) $ labEdges g
-        maxLen = length $ show n
+    let ns     := sortBy (comparing node) $ labNodes g
+        es     := sortBy (comparing edge) $ labEdges g
+        maxLen := length $ show n
      in unlines $
           "Nodes:"   :: map (dispNode maxLen) ns ++
           "\nEdges:" :: map (dispEdge maxLen) es
 
-  where dispNode : Nat -> LNode n -> String
-        dispNode k (MkLNode n1 l) =
-          #"  \#{pl k n1} :> \#{dn l}"#
+  where
+    dispNode : Nat -> LNode n -> String
+    dispNode k (MkLNode n1 l) =
+      #"  \#{pl k n1} :> \#{dn l}"#
 
-        dispEdge : Nat -> LEdge e -> String
-        dispEdge k (MkLEdge (MkEdge n1 n2 _) l) =
-          #"  \#{pl k n1} <> \#{pl k n2} :> \#{de l}"#
+    dispEdge : Nat -> LEdge e -> String
+    dispEdge k (MkLEdge (MkEdge n1 n2 _) l) =
+      #"  \#{pl k n1} <> \#{pl k n2} :> \#{de l}"#
