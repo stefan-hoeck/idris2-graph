@@ -4,5 +4,4 @@ import Hedgehog
 import BitMap
 
 main : IO ()
-main = test [ BitMap.props
-            ]
+main = test [ BitMap.props ]
