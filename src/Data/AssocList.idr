@@ -335,10 +335,11 @@ prepEQ p eq (UR ps prf) =
 ||| duplicate entries.
 public export
 union_ : AL m1 a -> AL m2 a -> UnionRes m1 m2 a
-union_ (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
-  LT prf _   _   => prepLT p $ union_ ps (q :: qs)
-  EQ _   prf _   => prepEQ p prf $ union_ ps qs
-  GT _   _   prf => prepGT q $ union_ (p :: ps) qs
+union_ xs@(p :: ps) ys@(q :: qs) =
+  case comp (fst p) (fst q) of
+    LT prf _   _   => prepLT p $ union_ ps ys
+    EQ _   prf _   => prepEQ p prf $ union_ ps qs
+    GT _   _   prf => prepGT q $ union_ xs qs
 union_ y [] = UR y (Left Refl)
 union_ [] y = UR y (Right Refl)
 
@@ -352,10 +353,11 @@ unionMap_ :
   -> AL m1 a
   -> AL m2 a
   -> UnionRes m1 m2 b
-unionMap_ f g (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
-  LT prf _   _   => prepLT (fst p, g $ snd p) $ unionMap_ f g ps (q :: qs)
-  EQ _   prf _   => prepEQ (fst p, f (snd p) (snd q)) prf $ unionMap_ f g ps qs
-  GT _   _   prf => prepGT (fst q, g $ snd q) $ unionMap_ f g (p :: ps) qs
+unionMap_ f g xs@(p :: ps) ys@(q :: qs) =
+  case comp (fst p) (fst q) of
+    LT prf _   _   => prepLT (fst p, g $ snd p) $ unionMap_ f g ps ys
+    EQ _   prf _   => prepEQ (fst p, f (snd p) (snd q)) prf $ unionMap_ f g ps qs
+    GT _   _   prf => prepGT (fst q, g $ snd q) $ unionMap_ f g xs qs
 unionMap_ _ g y [] = UR (map g y) (Left Refl)
 unionMap_ _ g [] y = UR (map g y) (Right Refl)
 
@@ -402,14 +404,15 @@ prependIS p prf (IS ps prf1 prf2) =
 ||| the first list are being kept.
 public export
 intersect_ : AL m1 a -> AL m2 a -> IntersectRes m1 m2 a
-intersect_ (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
-  LT _ _ _   =>
-    let IS res p1 p2 := intersect_ ps (q :: qs)
-     in IS res (transitive %search p1) p2
-  EQ _ y _ => prependIS p y $ intersect_ ps qs
-  GT _ _ _ =>
-    let IS res p1 p2 := intersect_ (p :: ps) qs
-     in IS res p1 (transitive %search p2)
+intersect_ xs@(p :: ps) ys@(q :: qs) =
+  case comp (fst p) (fst q) of
+    LT _ _ _   =>
+      let IS res p1 p2 := intersect_ ps ys
+       in IS res (transitive %search p1) p2
+    EQ _ y _ => prependIS p y $ intersect_ ps qs
+    GT _ _ _ =>
+      let IS res p1 p2 := intersect_ xs qs
+       in IS res p1 (transitive %search p2)
 intersect_ y [] = IS [] lteNothing %search
 intersect_ [] y = IS [] %search lteNothing
 
@@ -418,14 +421,15 @@ intersect_ [] y = IS [] %search lteNothing
 ||| lists are combine using function `f`.
 public export
 intersectWith_ : (a -> a -> b) -> AL m1 a -> AL m2 a -> IntersectRes m1 m2 b
-intersectWith_ f (p :: ps) (q :: qs) = case comp (fst p) (fst q) of
-  LT _ _ _ =>
-    let IS res p1 p2 := intersectWith_ f ps (q :: qs)
-     in IS res (transitive %search p1) p2
-  EQ _ y _ => prependIS (fst p, f (snd p) (snd q)) y $ intersectWith_ f ps qs
-  GT _ _ _ =>
-    let IS res p1 p2 := intersectWith_ f (p :: ps) qs
-     in IS res p1 (transitive %search p2)
+intersectWith_ f xs@(p :: ps) ys@(q :: qs) =
+  case comp (fst p) (fst q) of
+    LT _ _ _ =>
+      let IS res p1 p2 := intersectWith_ f ps ys
+       in IS res (transitive %search p1) p2
+    EQ _ y _ => prependIS (fst p, f (snd p) (snd q)) y $ intersectWith_ f ps qs
+    GT _ _ _ =>
+      let IS res p1 p2 := intersectWith_ f xs qs
+       in IS res p1 (transitive %search p2)
 intersectWith_ _ y [] = IS [] lteNothing %search
 intersectWith_ _ [] y = IS [] %search lteNothing
 
