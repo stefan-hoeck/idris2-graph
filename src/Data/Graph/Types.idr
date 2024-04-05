@@ -15,7 +15,7 @@ import Data.Prim.Bits32
 --          Nodes and Edges
 --------------------------------------------------------------------------------
 
-infixl 4 :>, <>
+export infixl 4 :>, <>
 
 ||| A node in an undirected graph.
 public export
